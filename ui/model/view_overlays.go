@@ -62,8 +62,6 @@ func (m Model) renderDeviceOverlay() string {
 	return m.centerOverlay(strings.Join(lines, "\n"))
 }
 
-var keymapScroll int
-
 func (m Model) keymapHelpLine() string {
 	return helpKey("↑↓", "Navigate ") + helpKey("PgUp/Dn", "Page ") +
 		helpKey("Home/End", "Jump ") + helpKey("Type", "Filter ") + helpKey("Esc", "Close")
@@ -90,7 +88,7 @@ func (m Model) keymapVisibleRows() int {
 	probeFrame := ui.FrameStyle.Render(strings.Join(probeSections, "\n"))
 	fixedHeight := lipgloss.Height(probeFrame) - 1
 
-	limit := 12
+	limit := maxPlVisible
 	if m.heightExpanded {
 		limit = m.height
 	}
@@ -123,24 +121,10 @@ func (m Model) renderKeymapOverlay() string {
 	rendered := 0
 
 	if len(visible) == 0 {
-		keymapScroll = 0
 		lines = append(lines, dimStyle.Render("  No matches"))
 		rendered = 1
 	} else {
-		scroll := max(0, keymapScroll)
-		if scroll >= len(visible) {
-			scroll = max(0, len(visible)-1)
-		}
-		if m.keymap.cursor < scroll {
-			scroll = m.keymap.cursor
-		} else if m.keymap.cursor >= scroll+maxVisible {
-			scroll = m.keymap.cursor - maxVisible + 1
-		}
-		if scroll+maxVisible > len(visible) {
-			scroll = max(0, len(visible)-maxVisible)
-		}
-		keymapScroll = scroll
-
+		scroll := scrollStart(m.keymap.cursor, maxVisible)
 		for i := scroll; i < len(visible) && i < scroll+maxVisible; i++ {
 			line := fmt.Sprintf("%-10s %s", visible[i].key, visible[i].action)
 			lines = append(lines, cursorLine(line, i == m.keymap.cursor))
