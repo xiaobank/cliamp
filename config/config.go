@@ -111,6 +111,26 @@ func (p PlexConfig) IsSet() bool {
 	return p.URL != "" && p.Token != ""
 }
 
+// TidalConfig holds settings for the Tidal provider.
+// Requires a Tidal subscription. Auth uses a refresh_token copied from the
+// listen.tidal.com web player devtools — see docs/tidal.md.
+//
+// LOSSLESS/HI_RES playback requires Widevine DRM which cliamp cannot
+// decrypt directly. Users who want lossless configure ExternalCommand
+// pointing at a helper binary they install themselves.
+type TidalConfig struct {
+	Disabled        bool   // true only when user explicitly sets enabled = false
+	ClientID        string // from listen.tidal.com /oauth2/token response
+	RefreshToken    string // from listen.tidal.com /oauth2/token response
+	Quality         string // "LOW", "HIGH" (default), "LOSSLESS"
+	ExternalCommand string // shell template for LOSSLESS playback (optional)
+}
+
+// IsSet reports whether the Tidal provider should be shown.
+func (t TidalConfig) IsSet() bool {
+	return !t.Disabled && t.ClientID != "" && t.RefreshToken != ""
+}
+
 // JellyfinConfig holds credentials for a Jellyfin server.
 // URL is required. Authenticate either with Token, or with User+Password.
 // UserID is optional and can be discovered lazily.
@@ -138,7 +158,7 @@ type Config struct {
 	Speed           float64                      // playback speed ratio: 0.25–2.0 (default 1.0)
 	AutoPlay        bool                         // start playback automatically on launch (radio streams, CLI tracks)
 	SeekStepLarge   int                          // seconds for Shift+Left/Right seek jumps
-	Provider        string                       // default provider: "radio", "navidrome", "spotify", "plex", "jellyfin", "ytmusic" (default "radio")
+	Provider        string                       // default provider: "radio", "navidrome", "spotify", "plex", "jellyfin", "ytmusic", "tidal" (default "radio")
 	Theme           string                       // theme name, or "" for ANSI default
 	Visualizer      string                       // visualizer mode name, or "" for default (Bars)
 	SampleRate      int                          // output sample rate: 22050, 44100, 48000, 96000, 192000
@@ -155,6 +175,7 @@ type Config struct {
 	YouTubeMusic    YouTubeMusicConfig           // optional YouTube Music provider
 	Plex            PlexConfig                   // optional Plex Media Server credentials
 	Jellyfin        JellyfinConfig               // optional Jellyfin server credentials
+	Tidal           TidalConfig                  // optional Tidal provider (requires subscription)
 	Plugins         map[string]map[string]string // per-plugin config from [plugins.*] sections
 }
 
@@ -294,6 +315,19 @@ func Load() (Config, error) {
 				cfg.Jellyfin.Password = strings.Trim(val, `"'`)
 			case "user_id":
 				cfg.Jellyfin.UserID = strings.Trim(val, `"'`)
+			}
+		case "tidal":
+			switch key {
+			case "enabled":
+				cfg.Tidal.Disabled = strings.ToLower(val) == "false"
+			case "client_id":
+				cfg.Tidal.ClientID = strings.Trim(val, `"'`)
+			case "refresh_token":
+				cfg.Tidal.RefreshToken = strings.Trim(val, `"'`)
+			case "quality":
+				cfg.Tidal.Quality = strings.ToUpper(strings.Trim(val, `"'`))
+			case "external_command":
+				cfg.Tidal.ExternalCommand = strings.Trim(val, `"'`)
 			}
 		default:
 			// Handle [plugins] and [plugins.*] sections.

@@ -32,7 +32,7 @@ eq_preset = "Flat"
 # Only used when eq_preset is "Custom" or empty
 eq = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-# Default provider on startup: "radio", "navidrome", "spotify", "plex", "jellyfin", or a YouTube provider
+# Default provider on startup: "radio", "navidrome", "spotify", "tidal", "plex", "jellyfin", or a YouTube provider
 # provider = "radio"
 
 # Compact mode: cap UI width at 80 columns (default: fluid/full-width)
@@ -69,6 +69,18 @@ eq = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 #               frequent, starred, byYear, byGenre
 # This is updated automatically when you press [s] inside the browser.
 # browse_sort = alphabeticalByName
+
+# ---
+# Tidal (optional, UNOFFICIAL integration — see docs/tidal.md)
+# cliamp can browse and play Tidal via the same private API the web player
+# uses. HIGH (320 kbps AAC) and LOW (96 kbps AAC) quality play natively.
+# LOSSLESS and HI_RES are Widevine-encrypted and cannot be decrypted by
+# cliamp directly — point external_command at a helper you install yourself.
+# [tidal]
+# client_id     = "paste-client_id-from-listen.tidal.com-devtools"
+# refresh_token = "paste-refresh_token-from-listen.tidal.com-devtools"
+# quality       = "HIGH"   # LOW | HIGH | LOSSLESS
+# external_command = ""    # e.g. "tidal-url-helper --id {id} --token {token}"
 
 # ---
 # Jellyfin server (optional)

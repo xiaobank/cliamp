@@ -16,6 +16,7 @@ import (
 	"cliamp/external/plex"
 	"cliamp/external/radio"
 	"cliamp/external/spotify"
+	"cliamp/external/tidal"
 	"cliamp/external/ytmusic"
 	"cliamp/internal/appmeta"
 	"cliamp/internal/playback"
@@ -75,6 +76,17 @@ func run(overrides config.Overrides, positional []string) error {
 		providers = append(providers, model.ProviderEntry{Key: "spotify", Name: "Spotify", Provider: spotifyProv})
 	}
 
+	var tidalProv *tidal.Provider
+	if cfg.Tidal.IsSet() {
+		tidalProv = tidal.New(tidal.Config{
+			ClientID:        cfg.Tidal.ClientID,
+			RefreshToken:    cfg.Tidal.RefreshToken,
+			Quality:         cfg.Tidal.Quality,
+			ExternalCommand: cfg.Tidal.ExternalCommand,
+		})
+		providers = append(providers, model.ProviderEntry{Key: "tidal", Name: "Tidal", Provider: tidalProv})
+	}
+
 	var ytProviders ytmusic.Providers
 	ytWanted := cfg.YouTubeMusic.IsSetOrFallback(ytmusic.FallbackCredentials)
 	if !ytWanted {
@@ -117,6 +129,9 @@ func run(overrides config.Overrides, positional []string) error {
 
 	if spotifyProv != nil {
 		defer spotifyProv.Close()
+	}
+	if tidalProv != nil {
+		defer tidalProv.Close()
 	}
 	if ytProviders.Music != nil {
 		defer ytProviders.Music.Close()
@@ -190,6 +205,9 @@ func run(overrides config.Overrides, positional []string) error {
 
 	if spotifyProv != nil {
 		p.RegisterStreamerFactory("spotify:", spotifyProv.NewStreamer)
+	}
+	if tidalProv != nil {
+		p.RegisterStreamerFactory("tidal:", tidalProv.NewStreamer)
 	}
 
 	p.RegisterBufferedURLMatcher(func(u string) bool {
