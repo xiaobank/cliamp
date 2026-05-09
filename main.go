@@ -52,7 +52,8 @@ func playWithMpv(args []string, shuffle bool, loop bool, volume int) error {
 	}
 
 	// Enable terminal UI and audio-only mode
-	mpvArgs = append(mpvArgs, "--no-video", "--term-osd-bar")
+	// --no-audio-display prevents album art windows from popping up
+	mpvArgs = append(mpvArgs, "--no-video", "--no-audio-display", "--term-osd-bar")
 	mpvArgs = append(mpvArgs, args...)
 
 	cmd := exec.Command("mpv", mpvArgs...)
@@ -106,7 +107,8 @@ func main() {
 
 	rootCmd.Flags().BoolVarP(&shuffle, "shuffle", "s", false, "Shuffle the playlist")
 	rootCmd.Flags().BoolVarP(&loop, "loop", "l", false, "Loop the playlist indefinitely")
-	rootCmd.Flags().IntVarP(&volume, "volume", "v", 100, "Set playback volume (0-100)")
+	// Default volume lowered to 80 to avoid unexpectedly loud playback
+	rootCmd.Flags().IntVarP(&volume, "volume", "v", 80, "Set playback volume (0-100)")
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
