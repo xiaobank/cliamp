@@ -53,7 +53,8 @@ func playWithMpv(args []string, shuffle bool, loop bool, volume int) error {
 
 	// Enable terminal UI and audio-only mode
 	// --no-audio-display prevents album art windows from popping up
-	mpvArgs = append(mpvArgs, "--no-video", "--no-audio-display", "--term-osd-bar")
+	// --really-quiet reduces noisy status output in the terminal
+	mpvArgs = append(mpvArgs, "--no-video", "--no-audio-display", "--term-osd-bar", "--really-quiet")
 	mpvArgs = append(mpvArgs, args...)
 
 	cmd := exec.Command("mpv", mpvArgs...)
